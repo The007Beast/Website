@@ -1,6 +1,6 @@
 baseurl = "/"
 languageCode = "en-US"
-title = "Chris Turner"
+title = "Marcus Hunter"
 # Enable comments by entering your Disqus shortname
 disqusShortname = ""
 # Enable Google Analytics by entering your tracking code
@@ -19,14 +19,7 @@ theme = "hugo-sustain"
   custom_css = []
   custom_js  = []
 
-[params.social]
-  Github        = "username"
-  Email         = "email@example.com"
-  Twitter       = "username"
-  LinkedIn      = "username"
-  Stackoverflow = "username"
-  Medium        = "username"
-  Telegram      = "username"
+
 
 ## Main Menu
 [[menu.main]]
@@ -39,8 +32,3 @@ theme = "hugo-sustain"
   identifier = "projects"
   weight = 200
   url = "/projects/"
-[[menu.main]]
-  name = "resume"
-  identifier = "resume"
-  weight = 300
-  url = "/resume/"
