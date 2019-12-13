@@ -1,0 +1,145 @@
+---
+title: "Project1"
+author: "Marcus Hunter   mth2244"
+date: "10/17/2019"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggplot2)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+For this project, I chose to look at health data between some developing and developed countries. I want to be a doctor in the future and I'm interested in health disparities. The two datasets contain health stats such as life expectancy and adult mortality and then other stats such as spending on health infrastructure. I believe findings will fit the expectations that developign countries will tend to have lower life expectancies and spending on healthcare. For developed countries, healthcare spending should be greater, thus people should have access to better healthcare and overall should have better health statistics. I would also expect developed countries to be more hospital dense since the resources are there to build more hospitals. 
+
+```{r}
+life <- read.csv(file = "Life Expectancy Data.csv")
+health <- read.csv(file = "Health Infrastructure Dataset.csv")
+head(health)
+```
+
+The health dataset contains the number of hospitals of different types per 100,00 people.
+
+```{r}
+head(life)
+```
+
+The life dataset contains many health-related statistics for particular countries during 2013.
+
+```{r}
+data <- full_join(life, health, by="Country")
+data <- data %>%
+  na.omit() %>%
+  rename(Year = Year.x) %>%
+  rename("Life Expectancy (Age)" = Life.expectancy) %>%
+  rename("Adult Mortality (per 1000)" = Adult.Mortality) %>%
+  rename("Infant Deaths (per 1000)" = infant.deaths) %>%
+  rename("Percentage Expenditure on Health (% of GDP)" = percentage.expenditure) %>%
+  rename("Under-5 Deaths (per 1000)" = under.five.deaths) %>%
+  rename("Total Government Expenditure on Health (% of Total Gov't Expenditure)"= Total.expenditure) %>%
+  rename("GDP (in USD)" = GDP) %>%
+  rename("Hospitals (density per 100,000)" = Total.density.per.100.000.population..Hospitals) %>%
+  rename("Specialty Hospitals (density per 100,000" = Total.density.per.100.000.population..Specialized.hospitals) %>%
+  select(-c("Year.y", "Alcohol", "Hepatitis.B", "Measles", "Polio", "Diphtheria", "HIV.AIDS", "thinness..1.19.years", "thinness.5.9.years", "Income.composition.of.resources", "Schooling", "Total.density.per.100.000.population..Health.posts", "Total.density.per.100.000.population..Health.centres", "Total.density.per.100.000.population..District.rural.hospitals", "Total.density.per.100.000.population..Provincial.hospitals"))
+head(data)
+```
+
+Here a full join was ran to combine the datasets based on country. Some statistics were unavailable thus countries with NAs were omitted. 84 countries were dropped from the health dataset and 138 countries were dropped from the life dataset. Some of the category titles were then renamed to either provide more information or just look nicer. Lastly some columns were dropped as they weren't relevant to the data I wante to explore.
+
+```{r}
+data_longer <- data %>%
+  pivot_longer(c("Life Expectancy (Age)", "Adult Mortality (per 1000)"), names_to = "age", values_to = "stat")
+head(data_longer)
+```
+
+Pivot_longer was ran to bring adult mortality and life expectancy into one column. This was performed just to demonstrate knowledge of the function. This was then reversed using pivot_wider in the next r chunk.
+
+```{r}
+data_wider <- data_longer %>%
+  pivot_wider(names_from = "age", values_from = "stat")
+head(data_wider)
+```
+
+```{r}
+data %>%
+  filter(Status == "Developing") %>%
+  head()
+```
+
+To demonstrate knowledge of the filter function, all the devloping countries were filtered through. There are 51 developing countries in the dataset and 4 developed countries.
+
+```{r}
+data %>%
+  select(Country, Status, `Total Government Expenditure on Health (% of Total Gov't Expenditure)`) %>%
+  group_by(Status) %>%
+  arrange(desc(`Total Government Expenditure on Health (% of Total Gov't Expenditure)`)) %>%
+  head()
+```
+
+To further explore the data, I wanted to see how developing countries compared to developed countries on the total amount the government spends on health as a percent of the total government expenditure. Malta, a developed country, had the highest % expenditure on health at 9.89%. Suprisingly though, other developing countries were ahead of developed countries like Croatia and Lithuania. It should be noted that many of the fully developed countries like US and Australia weren't included in this project.
+
+```{r}
+data %>%
+  mutate("Adult Mortality (per 100,000)" = `Adult Mortality (per 1000)`/100) %>%
+  arrange(`Adult Mortality (per 100,000)`) %>%
+  head()
+```
+
+To demonstrate knowledge of the mutate function, the adult mortality propotion was converted to out of 100,000 people instead of 1000. The smallest adult mortality rate was 0.09 per 100,000 people which belonged to Bosnia and Herzegovina, a developing country. This is interesting as one would think it would belong to a developed country.
+
+```{r}
+data %>%
+  group_by(Status) %>%
+  summarise(mean_Hospitals = mean(`Hospitals (density per 100,000)`), mean_life = mean(`Life Expectancy (Age)`), sd_life = sd(`Life Expectancy (Age)`), mean_AM = mean(`Adult Mortality (per 1000)`), mean_ID = mean(`Infant Deaths (per 1000)`), mean_BMI = mean(`BMI`), mean_Exp = mean(`Total Government Expenditure on Health (% of Total Gov't Expenditure)`), sd_Exp = sd(`Total Government Expenditure on Health (% of Total Gov't Expenditure)`), mean_SpHosp = mean(`Specialty Hospitals (density per 100,000`))
+ 
+```
+
+The mean and standard deviation statistics were calculated for the developed and developing countries for comparison for many of the variables. Unsurprisingly, the developed countries had higher life expectancies and lower adult mortality rates. However, too some surprise developing countries had on average more hospitals per 100,000 people and lower BMI. This could possibly be explained by transportation and daily life practices which would be interesting to look at for future study. Developed countries tend to have better roads and transportation allowing for travel over greater distance while in developing countries bike and walking are still fairly common modes of transportation meaning hospitals need to be closer. Developing countries tend to be more manual labor intensive leading to lower BMI.
+
+```{r}
+data %>%
+  select_if(is.numeric) %>%
+  cor()
+```
+
+A correlation matrix was ran to show how different variables correlated with each other. Most correlations were pretty weak. A strong one to no surpise was GDP and % of GDP spent on health. Life expectancy had decent correlations with both % GDP spent on health and BMI which is unsurprising really. As more money spent on health means better healthcare leading to a longer life span.
+
+```{r}
+data %>%
+  ggplot(aes(`Total Government Expenditure on Health (% of Total Gov't Expenditure)`, `Hospitals (density per 100,000)`)) +
+  geom_line(stat = "summary") +
+  facet_wrap(~Status)
+```
+
+A line plot is shown to show the difference in hospital density between developing and developed countries. It is shown as a function of total government expenditure on health. Developing countries have a lot of variance which makes since as more variables come into play. These include things such as corruption, land availabilty, conflicts, and many others. Developed countries tend to be very stable as shown in the graph.
+
+```{r}
+data %>%
+  ggplot(aes(x = Status, y = `Life Expectancy (Age)`)) +
+  geom_boxplot(aes(color = Status))
+```
+
+Boxplots were made to show the difference in life expectancy between developend and developing countries. As discussed earlier, developed countries have the higher life excepctancy to no surprise. Developing countries had a lot more variance due to many other issues presented in developing countries.
+
+```{r cars}
+install.packages("ggfortify")
+library(ggfortify)
+
+data_PCA <- data %>%
+  select(c(4:14))
+
+autoplot(prcomp(data_PCA), data = data, colour = "Country", shape = "Status")
+
+```
+
+A PCA plot shows clusters based on similarity. Here many of the developing countries are shown to be clustered together. Most of the developed countries are outliers except 1. Triangles respresent developing countries and circles are developed countries. Thus, the developed country similar to the developing countries is Malta. This would be interesting to look at for further exploration. It's possible that Malta is just small, so data compares to that of larger developing countries or maybe there is something else going on. 

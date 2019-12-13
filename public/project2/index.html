@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Marcus Hunter" />
+    <meta name="description" content="Health Project">
+    <link rel="shortcut icon" type="image/x-icon" href="../img/favicon.ico">
+    <title>Project 2</title>
+    <meta name="generator" content="Hugo 0.61.0" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="../css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="../"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="../blog/">BLOG</a></li>
+        
+        <li><a href="../projects/">PROJECTS</a></li>
+        
+        <li><a href="../resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="../project2/">Project 2</a></strong>
+          </h3>
+        </div>
+        <div class="blog-title">
+          <h4>
+          January 1, 0001
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+
+
+<div id="r-markdown" class="section level2">
+<h2>R Markdown</h2>
+<p>This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <a href="http://rmarkdown.rstudio.com" class="uri">http://rmarkdown.rstudio.com</a>.</p>
+<p>When you click the <strong>Knit</strong> button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:</p>
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre><code>## ── Attaching packages ────────────────────────────────────────────────────────── tidyverse 1.2.1 ──</code></pre>
+<pre><code>## ✔ ggplot2 3.2.1          ✔ purrr   0.3.2     
+## ✔ tibble  2.1.3          ✔ dplyr   0.8.3     
+## ✔ tidyr   1.0.0.9000     ✔ stringr 1.4.0     
+## ✔ readr   1.3.1          ✔ forcats 0.4.0</code></pre>
+<pre><code>## ── Conflicts ───────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+## ✖ dplyr::filter() masks stats::filter()
+## ✖ dplyr::lag()    masks stats::lag()</code></pre>
+<pre class="r"><code>library(tidyr)
+library(ggplot2)
+library(dplyr)
+library(lmtest)</code></pre>
+<pre><code>## Loading required package: zoo</code></pre>
+<pre><code>## 
+## Attaching package: &#39;zoo&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     as.Date, as.Date.numeric</code></pre>
+<pre class="r"><code>library(sandwich)
+library(glmnet)</code></pre>
+<pre><code>## Loading required package: Matrix</code></pre>
+<pre><code>## 
+## Attaching package: &#39;Matrix&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:tidyr&#39;:
+## 
+##     expand, pack, unpack</code></pre>
+<pre><code>## Loading required package: foreach</code></pre>
+<pre><code>## 
+## Attaching package: &#39;foreach&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:purrr&#39;:
+## 
+##     accumulate, when</code></pre>
+<pre><code>## Loaded glmnet 2.0-16</code></pre>
+<pre class="r"><code>library(plotROC)</code></pre>
+<pre class="r"><code>life &lt;- read.csv(file = &quot;Life Expectancy Data.csv&quot;)
+health &lt;- read.csv(file = &quot;Health Infrastructure Dataset.csv&quot;)
+data &lt;- full_join(life, health, by=&quot;Country&quot;)</code></pre>
+<pre><code>## Warning: Column `Country` joining factors with different levels, coercing to
+## character vector</code></pre>
+<pre class="r"><code>data &lt;- data %&gt;%
+  na.omit() %&gt;%
+  rename(Year = Year.x) %&gt;%
+  rename(&quot;Life Expectancy (Age)&quot; = Life.expectancy) %&gt;%
+  rename(&quot;Adult Mortality (per 1000)&quot; = Adult.Mortality) %&gt;%
+  rename(&quot;Infant Deaths (per 1000)&quot; = infant.deaths) %&gt;%
+  rename(&quot;Percentage Expenditure on Health (% of GDP)&quot; = percentage.expenditure) %&gt;%
+  rename(&quot;Under-5 Deaths (per 1000)&quot; = under.five.deaths) %&gt;%
+  rename(&quot;Total Government Expenditure on Health (% of Total Gov&#39;t Expenditure)&quot;= Total.expenditure) %&gt;%
+  rename(&quot;GDP (in USD)&quot; = GDP) %&gt;%
+  rename(&quot;Hospitals (density per 100,000)&quot; = Total.density.per.100.000.population..Hospitals) %&gt;%
+  rename(&quot;Specialty Hospitals (density per 100,000&quot; = Total.density.per.100.000.population..Specialized.hospitals) %&gt;%
+  select(-c(&quot;Year.y&quot;, &quot;Alcohol&quot;, &quot;Hepatitis.B&quot;, &quot;Measles&quot;, &quot;Polio&quot;, &quot;Diphtheria&quot;, &quot;HIV.AIDS&quot;, &quot;thinness..1.19.years&quot;, &quot;thinness.5.9.years&quot;, &quot;Income.composition.of.resources&quot;, &quot;Schooling&quot;, &quot;Total.density.per.100.000.population..Health.posts&quot;, &quot;Total.density.per.100.000.population..Health.centres&quot;, &quot;Total.density.per.100.000.population..District.rural.hospitals&quot;, &quot;Total.density.per.100.000.population..Provincial.hospitals&quot;))</code></pre>
+<p>The joined dataset contains health data for a variety of developing and developed countries from the year 2013. To clarify, specialty hospitals are hospitals such as cardiology centers, cancer treatment centers, etc.</p>
+<pre class="r"><code>M &lt;- cbind(data$`Life Expectancy (Age)`, data$`Adult Mortality (per 1000)`, data$`Infant Deaths (per 1000)`, data$`Percentage Expenditure on Health (% of GDP)`, data$BMI, data$`Under-5 Deaths (per 1000)`, data$`Total Government Expenditure on Health (% of Total Gov&#39;t Expenditure)`, data$`GDP (in USD)`, data$Population, data$`Hospitals (density per 100,000)`, data$`Specialty Hospitals (density per 100,000)`)
+man_1&lt;-manova(M~Status, data=data)
+summary(man_1)</code></pre>
+<pre><code>##           Df  Pillai approx F num Df den Df Pr(&gt;F)
+## Status     1 0.26185   1.5608     10     44 0.1507
+## Residuals 53</code></pre>
+<pre class="r"><code>summary.aov(man_1)</code></pre>
+<pre><code>##  Response 1 :
+##             Df  Sum Sq Mean Sq F value  Pr(&gt;F)  
+## Status       1  287.74 287.744  5.9533 0.01807 *
+## Residuals   53 2561.70  48.334                  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+##  Response 2 :
+##             Df Sum Sq Mean Sq F value Pr(&gt;F)
+## Status       1  13480   13480  0.9958 0.3229
+## Residuals   53 717400   13536               
+## 
+##  Response 3 :
+##             Df Sum Sq Mean Sq F value Pr(&gt;F)
+## Status       1   2001  2000.8  0.7285 0.3972
+## Residuals   53 145567  2746.6               
+## 
+##  Response 4 :
+##             Df   Sum Sq Mean Sq F value    Pr(&gt;F)    
+## Status       1  3850890 3850890  15.219 0.0002717 ***
+## Residuals   53 13410732  253033                      
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+##  Response 5 :
+##             Df  Sum Sq Mean Sq F value   Pr(&gt;F)   
+## Status       1  2605.6 2605.58  7.7212 0.007534 **
+## Residuals   53 17885.4  337.46                    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+##  Response 6 :
+##             Df Sum Sq Mean Sq F value Pr(&gt;F)
+## Status       1   3731  3730.9  0.8559 0.3591
+## Residuals   53 231042  4359.3               
+## 
+##  Response 7 :
+##             Df  Sum Sq Mean Sq F value Pr(&gt;F)
+## Status       1  13.066  13.066  2.7364  0.104
+## Residuals   53 253.075   4.775               
+## 
+##  Response 8 :
+##             Df    Sum Sq   Mean Sq F value   Pr(&gt;F)    
+## Status       1 202292350 202292350  14.599 0.000351 ***
+## Residuals   53 734396430  13856536                     
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+##  Response 9 :
+##             Df     Sum Sq    Mean Sq F value Pr(&gt;F)
+## Status       1 2.8738e+14 2.8738e+14  0.2573 0.6141
+## Residuals   53 5.9188e+16 1.1167e+15               
+## 
+##  Response 10 :
+##             Df  Sum Sq Mean Sq F value Pr(&gt;F)
+## Status       1    2.74   2.736  0.0471  0.829
+## Residuals   53 3078.03  58.076</code></pre>
+<p>The MANOVA test has a p-value of 0.1507, thus there is no mean difference across status for any of the numerical variables. If they were significant 11 univariate ANOVAs would’ve been ran for a total of 12 tests. Thus α = .05/12 = .0041. Although the test says non-significant, this data is not likely to pass the randomization test since it was taken from a dataset that had available data. Countries with all this data available despite still being developing would be more developed than other developing countries that are really lacking in health resources. It’s likely that data wouldn’t exist for some of these countries. Thus, the data being used has countries on a more even plane which could account for why there is no significant difference. Especially as really developed countries like the US or Canada aren’t part of the dataset.</p>
+<pre class="r"><code>data %&gt;%
+  group_by(Status) %&gt;%
+  summarize(means=mean(`Life Expectancy (Age)`)) %&gt;%
+  summarize(`mean_diff:`=diff(means))</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##   `mean_diff:`
+##          &lt;dbl&gt;
+## 1        -8.81</code></pre>
+<pre class="r"><code>rand_dist&lt;-vector()
+
+for(i in 1:5000){
+new&lt;-data.frame(Age=sample(data$`Life Expectancy (Age)`),condition=data$Status) 
+rand_dist[i]&lt;-mean(new[new$condition==&quot;Developing&quot;,]$Age)-
+              mean(new[new$condition==&quot;Developed&quot;,]$Age)}
+
+mean(rand_dist&gt;8.807)*2</code></pre>
+<pre><code>## [1] 0.0208</code></pre>
+<pre class="r"><code>hist(rand_dist,main=&quot;Mean Diff of Life Expectancy for Developing vs. Developed Countries&quot;,ylab=&quot;Frequency&quot;); abline(v = -8.807,col=&quot;red&quot;)</code></pre>
+<p><img src="../Project2_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>The mean difference calculated between life expectancy for developing vs. developed countries was 8.807. The p-value obtained using a random distribution was 0.024. The null hypothesis is the mean life expectancy is the same for developing vs. developed countries. The alternative hypothesis is that the life expectancy is different for developing vs. developed countries. With a p-value of 0.024, the null is rejected, there is a significant difference is the life expectancy of developing vs. developed countries.</p>
+<pre class="r"><code>data$BMI_c &lt;- data$BMI - mean(data$BMI)
+data$Spend &lt;- data$`Total Government Expenditure on Health (% of Total Gov&#39;t Expenditure)` - mean(data$`Total Government Expenditure on Health (% of Total Gov&#39;t Expenditure)`)
+
+fit &lt;- lm(`Adult Mortality (per 1000)` ~ BMI_c*Spend, data = data)
+summary(fit)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = `Adult Mortality (per 1000)` ~ BMI_c * Spend, data = data)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -232.812  -47.986   -3.369   57.257  231.272 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 173.01126   14.95917  11.566  7.2e-16 ***
+## BMI_c        -2.54414    0.77586  -3.279  0.00188 ** 
+## Spend        -1.41617    7.21203  -0.196  0.84511    
+## BMI_c:Spend   0.03928    0.34880   0.113  0.91077    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 107.9 on 51 degrees of freedom
+## Multiple R-squared:  0.1869, Adjusted R-squared:  0.1391 
+## F-statistic: 3.908 on 3 and 51 DF,  p-value: 0.01376</code></pre>
+<pre class="r"><code>qplot(x = Spend, y = `Adult Mortality (per 1000)`, color = BMI_c, data = data) +
+ stat_smooth(method = &quot;lm&quot;, se = FALSE, fullrange = TRUE)</code></pre>
+<p><img src="../Project2_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<pre class="r"><code>new1&lt;-data
+new1$BMI_c&lt;-mean(data$BMI_c)
+new1$mean&lt;-predict(fit,new1)
+new1$BMI_c&lt;-mean(data$BMI_c)+sd(data$BMI_c)
+new1$plus.sd&lt;-predict(fit,new1)
+new1$BMI_c&lt;-mean(data$BMI_c)-sd(data$BMI_c)
+new1$minus.sd&lt;-predict(fit,new1)
+newint&lt;-new1%&gt;%select(`Adult Mortality (per 1000)`,Spend,mean,plus.sd,minus.sd)%&gt;%gather(BMI,value,-`Adult Mortality (per 1000)`,-Spend)
+
+mycols&lt;-c(&quot;#619CFF&quot;,&quot;#F8766D&quot;,&quot;#00BA38&quot;)
+names(mycols)&lt;-c(&quot;-1 sd&quot;,&quot;mean&quot;,&quot;+1 sd&quot;)
+mycols=as.factor(mycols)
+
+ggplot(data,aes(Spend,`Adult Mortality (per 1000)`),group=mycols)+geom_point()+geom_line(data=new1,aes(y=mean,color=&quot;mean&quot;))+geom_line(data=new1,aes(y=plus.sd,color=&quot;+1 sd&quot;))+geom_line(data=new1,aes(y=minus.sd,color=&quot;-1 sd&quot;))+scale_color_manual(values=mycols)+labs(color=&quot;PTS (cont)&quot;)+theme(legend.position=c(.9,.2))</code></pre>
+<p><img src="../Project2_files/figure-html/unnamed-chunk-5-2.png" width="672" /></p>
+<pre class="r"><code>resids&lt;-fit$residuals; fitvals&lt;-fit$fitted.values
+ggplot()+geom_point(aes(fitvals,resids))+geom_hline(yintercept=0, col=&quot;red&quot;)</code></pre>
+<p><img src="../Project2_files/figure-html/unnamed-chunk-5-3.png" width="672" /></p>
+<pre class="r"><code>ggplot()+geom_histogram(aes(resids),bins=20)</code></pre>
+<p><img src="../Project2_files/figure-html/unnamed-chunk-5-4.png" width="672" /></p>
+<pre class="r"><code>coeftest(fit)[,1:2]</code></pre>
+<pre><code>##                 Estimate Std. Error
+## (Intercept) 173.01125888 14.9591713
+## BMI_c        -2.54413643  0.7758583
+## Spend        -1.41616517  7.2120279
+## BMI_c:Spend   0.03928412  0.3487975</code></pre>
+<pre class="r"><code>coeftest(fit, vcov=vcovHC(fit))[,1:2]</code></pre>
+<pre><code>##                 Estimate Std. Error
+## (Intercept) 173.01125888 15.3010039
+## BMI_c        -2.54413643  0.8078829
+## Spend        -1.41616517  9.4707537
+## BMI_c:Spend   0.03928412  0.4278942</code></pre>
+<pre class="r"><code>fit2 &lt;- lm(`Adult Mortality (per 1000)` ~ BMI_c+Spend, data = data)
+summary(fit2)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = `Adult Mortality (per 1000)` ~ BMI_c + Spend, data = data)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -234.339  -46.897   -4.478   57.098  232.617 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 173.4000    14.4167  12.028  &lt; 2e-16 ***
+## BMI_c        -2.5470     0.7681  -3.316  0.00167 ** 
+## Spend        -1.1469     6.7394  -0.170  0.86553    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 106.9 on 52 degrees of freedom
+## Multiple R-squared:  0.1867, Adjusted R-squared:  0.1554 
+## F-statistic: 5.968 on 2 and 52 DF,  p-value: 0.00464</code></pre>
+<pre class="r"><code>anova(fit, fit2, test = &quot;LRT&quot;)</code></pre>
+<pre><code>## Analysis of Variance Table
+## 
+## Model 1: `Adult Mortality (per 1000)` ~ BMI_c * Spend
+## Model 2: `Adult Mortality (per 1000)` ~ BMI_c + Spend
+##   Res.Df    RSS Df Sum of Sq Pr(&gt;Chi)
+## 1     51 594277                      
+## 2     52 594425 -1   -147.81   0.9103</code></pre>
+<p>The intercept coefficient means that with a mean BMI and a mean expenditure, the adult mortality for a country would be 173 people per every 1000. This number decreases by 2.55 people for every 1 increase in BMI and decreases by 1.15 people for every 1% increase in government expenditure on health. With the interaction, 0.04 people should be added to the total regardless if BMI or expenditure is 0 as this interaction states that the BMI is different based on what the % expenditure on health is. Linearity and homoskedasticity pass graphically. Normality is on the cusp of passing, the sample is not quite random, thus bell curve normality was obtained, but there is no obvious skew. Using robust SEs, standard errors increased for the intercept, BMI, % expenditure and the interaction. The model created explains .1869^2 = 3.5% of the variation in Adult Mortality. By comparing the interaction model to the model with no interactions it is shown that the interaction model is better with a p-value of 0.9, so we fail to reject the null hypothesis. This ultimately makes sense as countries with more expenditure on health tend to have lower BMI which therefore increases mortality.</p>
+<pre class="r"><code>samp_distn&lt;-replicate(5000, {
+ boot_dat&lt;-data[sample(nrow(data),replace=TRUE),]
+ fit&lt;-lm(`Adult Mortality (per 1000)` ~ BMI_c*Spend, data=boot_dat)
+ coef(fit)
+})
+
+samp_distn%&gt;%t%&gt;%as.data.frame%&gt;%summarize_all(sd)</code></pre>
+<pre><code>##   (Intercept)     BMI_c    Spend BMI_c:Spend
+## 1    14.19418 0.7591152 8.631085   0.4016259</code></pre>
+<p>Compared to the original SEs, the intercept and the BMI_c bootstrapped SEs were lower while the expenditure and interaction bootstrapped SEs were increased. When comparing to the robust SEs. the intercept, BMI, expenditure and interaction bootstrapped SEs were all lower.</p>
+<pre class="r"><code>data$y &lt;- ifelse(data$Status == &quot;Developed&quot;, 1, 0)
+
+fit3&lt;-glm(y~`Infant Deaths (per 1000)` + `Hospitals (density per 100,000)` ,data=data,family=binomial(link=&quot;logit&quot;))</code></pre>
+<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
+<pre class="r"><code>coeftest(fit3)</code></pre>
+<pre><code>## 
+## z test of coefficients:
+## 
+##                                   Estimate Std. Error z value Pr(&gt;|z|)
+## (Intercept)                       -1.07969    0.95133 -1.1349   0.2564
+## `Infant Deaths (per 1000)`        -0.54617    0.55766 -0.9794   0.3274
+## `Hospitals (density per 100,000)` -0.21805    0.42325 -0.5152   0.6064</code></pre>
+<pre class="r"><code>probs&lt;-predict(fit3,type=&quot;response&quot;)
+
+class_diag&lt;-function(probs,truth){
+  
+  tab&lt;-table(factor(probs&gt;.2,levels=c(&quot;FALSE&quot;,&quot;TRUE&quot;)),truth)
+  acc=sum(diag(tab))/sum(tab)
+  sens=tab[2,2]/colSums(tab)[2]
+  spec=tab[1,1]/colSums(tab)[1]
+  ppv=tab[2,2]/rowSums(tab)[2]
+
+  if(is.numeric(truth)==FALSE &amp; is.logical(truth)==FALSE) truth&lt;-as.numeric(truth)-1
+  
+  ord&lt;-order(probs, decreasing=TRUE)
+  probs &lt;- probs[ord]; truth &lt;- truth[ord]
+  
+  TPR=cumsum(truth)/max(1,sum(truth)) 
+  FPR=cumsum(!truth)/max(1,sum(!truth))
+  
+  dup&lt;-c(probs[-1]&gt;=probs[-length(probs)], FALSE)
+  TPR&lt;-c(0,TPR[!dup],1); FPR&lt;-c(0,FPR[!dup],1)
+  
+  n &lt;- length(TPR)
+  auc&lt;- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+
+  data.frame(acc,sens,spec,ppv,auc)
+}
+
+class_diag(probs, data$y)</code></pre>
+<pre><code>##         acc sens      spec       ppv       auc
+## 1 0.8545455 0.25 0.9019608 0.1666667 0.8284314</code></pre>
+<pre class="r"><code>table(truth=data$y, prediction=as.numeric(probs&gt;.2))%&gt;%addmargins</code></pre>
+<pre><code>##      prediction
+## truth  0  1 Sum
+##   0   46  5  51
+##   1    3  1   4
+##   Sum 49  6  55</code></pre>
+<pre class="r"><code>data$logit&lt;-predict(fit3)
+ggplot(data,aes(logit, fill=Status))+geom_density(alpha=.3)+
+  geom_vline(xintercept=0,lty=2)</code></pre>
+<p><img src="../Project2_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<pre class="r"><code>ROCplot&lt;-ggplot(data)+geom_roc(aes(d=y,m=probs), n.cuts=0) 
+ROCplot</code></pre>
+<p><img src="../Project2_files/figure-html/unnamed-chunk-7-2.png" width="672" /></p>
+<pre class="r"><code>calc_auc(ROCplot)</code></pre>
+<pre><code>##   PANEL group       AUC
+## 1     1    -1 0.8284314</code></pre>
+<pre class="r"><code>set.seed(1234)
+k=3 
+data1&lt;-data[sample(nrow(data)),] 
+folds&lt;-cut(seq(1:nrow(data)),breaks=k,labels=F) 
+diags&lt;-NULL
+for(i in 1:k){
+ train&lt;-data1[folds!=i,]
+ test&lt;-data1[folds==i,]
+ truth&lt;-test$y
+ fit4&lt;-glm(y~`Infant Deaths (per 1000)` + `Hospitals (density per 100,000)`,data=train,family=&quot;binomial&quot;)
+ probs&lt;-predict(fit4,newdata = test,type=&quot;response&quot;)
+ diags&lt;-rbind(diags,class_diag(probs,truth))
+}</code></pre>
+<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
+<pre class="r"><code>apply(diags,2,mean) </code></pre>
+<pre><code>##       acc      sens      spec       ppv       auc 
+## 0.8167641 0.6666667 0.8431373       NaN 0.7794118</code></pre>
+<p>By looking at the coefficients of the logistic regression, we see that for 0 infant deaths or hospitals, log-odds is -1.08. Thus odds of being a devloped country are e^-1.08 = .340. For 1 infant death per 1000, log-odds is -1.08 - 0.55 = -1.63, thus odds are e^-1.63 = 0.195. For 1 hospital per 100,000 people, log-odds is -1.08 - 0.21 = -1.29, thus odds of being a developed country are 0.275. In order to display data for project circumstances, a probability cutoff of 0.2 was used since anything higher fit the data and thus was no longer a prediction. From the confusion matrix, the accuracy is 0.855, the sensitivity (TPR) is 0.25, the specificity (TNR) is 0.902 and the precision (PPV) is 0.167. The calculated auc is 0.828. This is a good AUC. Thus, this model shows that developed or developing status of a country can be predicted from infant deaths and hospitals. A better model is needed though since the probability cutoff needed to be reduced to 0.2. Likely this just means more data is needed as only 55 countries were used with only 4 being developed. After performing a 3-fold CV since there were only 81 observations, accuracy was 0.817, sensitivity was 0.667 and recall was nonexistant. A nonexistant ppv further shows that more data is needed especially a more representative dataset of developing vs. developed countries.</p>
+<pre class="r"><code>y&lt;-as.matrix(data$y)
+x&lt;-data %&gt;%
+  select(4:14) %&gt;%
+  mutate_all(scale) %&gt;%
+  as.matrix
+cv&lt;-cv.glmnet(x,y)
+lasso1&lt;-glmnet(x,y,lambda=cv$lambda.1se)
+coef(lasso1)</code></pre>
+<pre><code>## 12 x 1 sparse Matrix of class &quot;dgCMatrix&quot;
+##                                                                               s0
+## (Intercept)                                                           0.07272727
+## Life Expectancy (Age)                                                 0.00000000
+## Adult Mortality (per 1000)                                            .         
+## Infant Deaths (per 1000)                                              .         
+## Percentage Expenditure on Health (% of GDP)                           .         
+## BMI                                                                   .         
+## Under-5 Deaths (per 1000)                                             .         
+## Total Government Expenditure on Health (% of Total Gov&#39;t Expenditure) .         
+## GDP (in USD)                                                          .         
+## Population                                                            .         
+## Specialty Hospitals (density per 100,000                              .         
+## Hospitals (density per 100,000)                                       .</code></pre>
+<pre class="r"><code>set.seed(1234)
+k= 3 
+data1&lt;-data[sample(nrow(data)),] 
+folds&lt;-cut(seq(1:nrow(data)),breaks=k,labels=F) 
+diags&lt;-NULL
+for(i in 1:k){
+ train&lt;-data1[folds!=i,]
+ test&lt;-data1[folds==i,]
+ truth&lt;-test$y
+ fit5&lt;-glm(y~`Life Expectancy (Age)`,data=train,family=&quot;binomial&quot;)
+ probs&lt;-predict(fit5,newdata = test,type=&quot;response&quot;)
+ diags&lt;-rbind(diags,class_diag(probs,truth))
+}
+diags%&gt;%summarize_all(mean)</code></pre>
+<pre><code>##        acc sens      spec ppv       auc
+## 1 0.871345  0.5 0.9019608 0.4 0.8431373</code></pre>
+<p>From the Lasso regression, we see that life expectancy is the most improtant predictor of whether a country is considered developed or developing. The accuracy of this model is 0.871 which is greater than the accuracy of the logistic regression model in the previous block. Thus, the Lasso regression model is a better fit.</p>
+</div>
+
+              <hr>
+              <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div>
+            </div>
+          </div>
+          <hr>
+        <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+        </div>
+      </div>
+      
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="../js/docs.min.js"></script>
+<script src="../js/main.js"></script>
+
+<script src="../js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>

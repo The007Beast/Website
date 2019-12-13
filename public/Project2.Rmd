@@ -1,0 +1,226 @@
+---
+title: "Project 2"
+author: "Marcus Hunter mth2244"
+date: "11/25/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+library(tidyverse)
+library(tidyr)
+library(ggplot2)
+library(dplyr)
+library(lmtest)
+library(sandwich)
+library(glmnet)
+library(plotROC)
+```
+
+
+
+```{r}
+life <- read.csv(file = "Life Expectancy Data.csv")
+health <- read.csv(file = "Health Infrastructure Dataset.csv")
+data <- full_join(life, health, by="Country")
+data <- data %>%
+  na.omit() %>%
+  rename(Year = Year.x) %>%
+  rename("Life Expectancy (Age)" = Life.expectancy) %>%
+  rename("Adult Mortality (per 1000)" = Adult.Mortality) %>%
+  rename("Infant Deaths (per 1000)" = infant.deaths) %>%
+  rename("Percentage Expenditure on Health (% of GDP)" = percentage.expenditure) %>%
+  rename("Under-5 Deaths (per 1000)" = under.five.deaths) %>%
+  rename("Total Government Expenditure on Health (% of Total Gov't Expenditure)"= Total.expenditure) %>%
+  rename("GDP (in USD)" = GDP) %>%
+  rename("Hospitals (density per 100,000)" = Total.density.per.100.000.population..Hospitals) %>%
+  rename("Specialty Hospitals (density per 100,000" = Total.density.per.100.000.population..Specialized.hospitals) %>%
+  select(-c("Year.y", "Alcohol", "Hepatitis.B", "Measles", "Polio", "Diphtheria", "HIV.AIDS", "thinness..1.19.years", "thinness.5.9.years", "Income.composition.of.resources", "Schooling", "Total.density.per.100.000.population..Health.posts", "Total.density.per.100.000.population..Health.centres", "Total.density.per.100.000.population..District.rural.hospitals", "Total.density.per.100.000.population..Provincial.hospitals"))
+```
+
+The joined dataset contains health data for a variety of developing and developed countries from the year 2013. To clarify, specialty hospitals are hospitals such as cardiology centers, cancer treatment centers, etc. 
+
+```{r}
+M <- cbind(data$`Life Expectancy (Age)`, data$`Adult Mortality (per 1000)`, data$`Infant Deaths (per 1000)`, data$`Percentage Expenditure on Health (% of GDP)`, data$BMI, data$`Under-5 Deaths (per 1000)`, data$`Total Government Expenditure on Health (% of Total Gov't Expenditure)`, data$`GDP (in USD)`, data$Population, data$`Hospitals (density per 100,000)`, data$`Specialty Hospitals (density per 100,000)`)
+man_1<-manova(M~Status, data=data)
+summary(man_1)
+
+summary.aov(man_1)
+```
+
+The MANOVA test has a p-value of 0.1507, thus there is no mean difference across status for any of the numerical variables. If they were significant 11 univariate ANOVAs would've been ran for a total of 12 tests. Thus α = .05/12 = .0041. Although the test says non-significant, this data is not likely to pass the randomization test since it was taken from a dataset that had available data. Countries with all this data available despite still being developing would be more developed than other developing countries that are really lacking in health resources. It's likely that data wouldn't exist for some of these countries. Thus, the data being used has countries on a more even plane which could account for why there is no significant difference. Especially as really developed countries like the US or Canada aren't part of the dataset.
+
+```{r}
+data %>%
+  group_by(Status) %>%
+  summarize(means=mean(`Life Expectancy (Age)`)) %>%
+  summarize(`mean_diff:`=diff(means))
+
+rand_dist<-vector()
+
+for(i in 1:5000){
+new<-data.frame(Age=sample(data$`Life Expectancy (Age)`),condition=data$Status) 
+rand_dist[i]<-mean(new[new$condition=="Developing",]$Age)-
+              mean(new[new$condition=="Developed",]$Age)}
+
+mean(rand_dist>8.807)*2
+
+hist(rand_dist,main="Mean Diff of Life Expectancy for Developing vs. Developed Countries",ylab="Frequency"); abline(v = -8.807,col="red")
+```
+
+The mean difference calculated between life expectancy for developing vs. developed countries was 8.807. The p-value obtained using a random distribution was 0.024. The null hypothesis is the mean life expectancy is the same for developing vs. developed countries. The alternative hypothesis is that the life expectancy is different for developing vs. developed countries. With a p-value of 0.024, the null is rejected, there is a significant difference is the life expectancy of developing vs. developed countries.
+
+```{r}
+data$BMI_c <- data$BMI - mean(data$BMI)
+data$Spend <- data$`Total Government Expenditure on Health (% of Total Gov't Expenditure)` - mean(data$`Total Government Expenditure on Health (% of Total Gov't Expenditure)`)
+
+fit <- lm(`Adult Mortality (per 1000)` ~ BMI_c*Spend, data = data)
+summary(fit)
+
+qplot(x = Spend, y = `Adult Mortality (per 1000)`, color = BMI_c, data = data) +
+ stat_smooth(method = "lm", se = FALSE, fullrange = TRUE)
+
+new1<-data
+new1$BMI_c<-mean(data$BMI_c)
+new1$mean<-predict(fit,new1)
+new1$BMI_c<-mean(data$BMI_c)+sd(data$BMI_c)
+new1$plus.sd<-predict(fit,new1)
+new1$BMI_c<-mean(data$BMI_c)-sd(data$BMI_c)
+new1$minus.sd<-predict(fit,new1)
+newint<-new1%>%select(`Adult Mortality (per 1000)`,Spend,mean,plus.sd,minus.sd)%>%gather(BMI,value,-`Adult Mortality (per 1000)`,-Spend)
+
+mycols<-c("#619CFF","#F8766D","#00BA38")
+names(mycols)<-c("-1 sd","mean","+1 sd")
+mycols=as.factor(mycols)
+
+ggplot(data,aes(Spend,`Adult Mortality (per 1000)`),group=mycols)+geom_point()+geom_line(data=new1,aes(y=mean,color="mean"))+geom_line(data=new1,aes(y=plus.sd,color="+1 sd"))+geom_line(data=new1,aes(y=minus.sd,color="-1 sd"))+scale_color_manual(values=mycols)+labs(color="PTS (cont)")+theme(legend.position=c(.9,.2))
+
+resids<-fit$residuals; fitvals<-fit$fitted.values
+ggplot()+geom_point(aes(fitvals,resids))+geom_hline(yintercept=0, col="red")
+
+
+ggplot()+geom_histogram(aes(resids),bins=20)
+
+
+coeftest(fit)[,1:2]
+coeftest(fit, vcov=vcovHC(fit))[,1:2]
+
+fit2 <- lm(`Adult Mortality (per 1000)` ~ BMI_c+Spend, data = data)
+summary(fit2)
+
+anova(fit, fit2, test = "LRT")
+```
+
+The intercept coefficient means that with a mean BMI and a mean expenditure, the adult mortality for a country would be 173 people per every 1000. This number decreases by 2.55 people for every 1 increase in BMI and decreases by 1.15 people for every 1% increase in government expenditure on health. With the interaction, 0.04 people should be added to the total regardless if BMI or expenditure is 0 as this interaction states that the BMI is different based on what the % expenditure on health is. Linearity and homoskedasticity pass graphically. Normality is on the cusp of passing, the sample is not quite random, thus bell curve normality was obtained, but there is no obvious skew. Using robust SEs, standard errors increased for the intercept, BMI, % expenditure and the interaction. The model created explains .1869^2 = 3.5% of the variation in Adult Mortality. By comparing the interaction model to the model with no interactions it is shown that the interaction model is better with a p-value of 0.9, so we fail to reject the null hypothesis. This ultimately makes sense as countries with more expenditure on health tend to have lower BMI which therefore increases mortality.
+
+```{r}
+samp_distn<-replicate(5000, {
+ boot_dat<-data[sample(nrow(data),replace=TRUE),]
+ fit<-lm(`Adult Mortality (per 1000)` ~ BMI_c*Spend, data=boot_dat)
+ coef(fit)
+})
+
+samp_distn%>%t%>%as.data.frame%>%summarize_all(sd)
+```
+
+Compared to the original SEs, the intercept and the BMI_c bootstrapped SEs were lower while the expenditure and interaction bootstrapped SEs were increased. When comparing to the robust SEs. the intercept, BMI, expenditure and interaction bootstrapped SEs were all lower.
+
+```{r}
+data$y <- ifelse(data$Status == "Developed", 1, 0)
+
+fit3<-glm(y~`Infant Deaths (per 1000)` + `Hospitals (density per 100,000)` ,data=data,family=binomial(link="logit"))
+coeftest(fit3)
+
+probs<-predict(fit3,type="response")
+
+class_diag<-function(probs,truth){
+  
+  tab<-table(factor(probs>.2,levels=c("FALSE","TRUE")),truth)
+  acc=sum(diag(tab))/sum(tab)
+  sens=tab[2,2]/colSums(tab)[2]
+  spec=tab[1,1]/colSums(tab)[1]
+  ppv=tab[2,2]/rowSums(tab)[2]
+
+  if(is.numeric(truth)==FALSE & is.logical(truth)==FALSE) truth<-as.numeric(truth)-1
+  
+  ord<-order(probs, decreasing=TRUE)
+  probs <- probs[ord]; truth <- truth[ord]
+  
+  TPR=cumsum(truth)/max(1,sum(truth)) 
+  FPR=cumsum(!truth)/max(1,sum(!truth))
+  
+  dup<-c(probs[-1]>=probs[-length(probs)], FALSE)
+  TPR<-c(0,TPR[!dup],1); FPR<-c(0,FPR[!dup],1)
+  
+  n <- length(TPR)
+  auc<- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+
+  data.frame(acc,sens,spec,ppv,auc)
+}
+
+class_diag(probs, data$y)
+
+table(truth=data$y, prediction=as.numeric(probs>.2))%>%addmargins
+
+data$logit<-predict(fit3)
+ggplot(data,aes(logit, fill=Status))+geom_density(alpha=.3)+
+  geom_vline(xintercept=0,lty=2)
+
+ROCplot<-ggplot(data)+geom_roc(aes(d=y,m=probs), n.cuts=0) 
+ROCplot
+calc_auc(ROCplot)
+
+set.seed(1234)
+k=3 
+data1<-data[sample(nrow(data)),] 
+folds<-cut(seq(1:nrow(data)),breaks=k,labels=F) 
+diags<-NULL
+for(i in 1:k){
+ train<-data1[folds!=i,]
+ test<-data1[folds==i,]
+ truth<-test$y
+ fit4<-glm(y~`Infant Deaths (per 1000)` + `Hospitals (density per 100,000)`,data=train,family="binomial")
+ probs<-predict(fit4,newdata = test,type="response")
+ diags<-rbind(diags,class_diag(probs,truth))
+}
+apply(diags,2,mean) 
+```
+
+By looking at the coefficients of the logistic regression, we see that for 0 infant deaths or hospitals, log-odds is -1.08. Thus odds of being a devloped country are e^-1.08 = .340. For 1 infant death per 1000, log-odds is -1.08 - 0.55 = -1.63, thus odds are e^-1.63 = 0.195. For 1 hospital per 100,000 people, log-odds is -1.08 - 0.21 = -1.29, thus odds of being a developed country are 0.275. In order to display data for project circumstances, a probability cutoff of 0.2 was used since anything higher fit the data and thus was no longer a prediction. From the confusion matrix, the accuracy is 0.855, the sensitivity (TPR) is 0.25, the specificity (TNR) is 0.902 and the precision (PPV) is 0.167. The calculated auc is 0.828. This is a good AUC. Thus, this model shows that developed or developing status of a country can be predicted from infant deaths and hospitals. A better model is needed though since the probability cutoff needed to be reduced to 0.2. Likely this just means more data is needed as only 55 countries were used with only 4 being developed. After performing a 3-fold CV since there were only 81 observations, accuracy was 0.817, sensitivity was 0.667 and recall was nonexistant. A nonexistant ppv further shows that more data is needed especially a more representative dataset of developing vs. developed countries.
+
+```{r}
+y<-as.matrix(data$y)
+x<-data %>%
+  select(4:14) %>%
+  mutate_all(scale) %>%
+  as.matrix
+cv<-cv.glmnet(x,y)
+lasso1<-glmnet(x,y,lambda=cv$lambda.1se)
+coef(lasso1)
+
+set.seed(1234)
+k= 3 
+data1<-data[sample(nrow(data)),] 
+folds<-cut(seq(1:nrow(data)),breaks=k,labels=F) 
+diags<-NULL
+for(i in 1:k){
+ train<-data1[folds!=i,]
+ test<-data1[folds==i,]
+ truth<-test$y
+ fit5<-glm(y~`Life Expectancy (Age)`,data=train,family="binomial")
+ probs<-predict(fit5,newdata = test,type="response")
+ diags<-rbind(diags,class_diag(probs,truth))
+}
+diags%>%summarize_all(mean)
+```
+
+From the Lasso regression, we see that life expectancy is the most improtant predictor of whether a country is considered developed or developing. The accuracy of this model is 0.871 which is greater than the accuracy of the logistic regression model in the previous block. Thus, the Lasso regression model is a better fit.
